@@ -19,6 +19,18 @@ io.on('connection', (socket) => {
         io.emit('message', data);
     });
 
+    // Handle messages from the client
+    socket.on('UserJoined', (data) => {
+        console.log('UserJoined:', data);
+        // Broadcast the message to all connected clients
+        io.emit('UserJoined', data);
+    });
+
+    socket.on('Move', (data) => {
+        console.log('move received', data);
+        io.emit('Move', data);
+    })
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
