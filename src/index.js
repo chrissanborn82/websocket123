@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
 import io from 'socket.io-client';
-import { v3 } from 'uuid';
+import { v4 } from 'uuid';
 
 console.log('Phaser:', Phaser);
 console.log('Socket.IO:', io);
-console.log('uiud', v3);
+console.log('uiud', v4);
 
 // Import assets
 import sky from '../assets/sky.png';
@@ -31,7 +31,8 @@ var config = {
     }
 };
 
-const players = { '0': undefined, '1': undefined };
+const uuid = v4();
+const players = { [uuid]: undefined }
 var stars;
 var bombs;
 var platforms;
@@ -39,6 +40,7 @@ var cursors;
 var score = 0;
 var gameOver = false;
 var scoreText;
+
 
 var game = new Phaser.Game(config);
 let socket;
@@ -52,7 +54,6 @@ function preload() {
 }
 
 function create() {
-    console.log('hi');
     socket = io();
     console.log({ socket });
     // Handle messages from the server
@@ -69,10 +70,21 @@ function create() {
     });
 
     // Send a test message to the server
-    socket.emit('message', 'Hello, server!');
+
+    socket.on('UserJoined', (data) => {
+        console.log(data)
+        if (data.uuid !== uuid) {
+            console.log('new user joined!', data);
+            players[data.uuid] = this.physics.add.sprite(data.x, data.y, 'dude');
+            players[data.uuid].setBounce(0.2);
+            players[data.uuid].setCollideWorldBounds(true);
+            this.physics.add.collider(players[data.uuid], platforms);
+        }
+    });
 
 
-
+    socket.emit('UserJoined', { uuid, x: 100, y: 450 });
+    console.log(uuid);
     //  A simple background for our game
     this.add.image(400, 300, 'sky');
 
@@ -88,14 +100,10 @@ function create() {
     platforms.create(50, 250, 'ground');
     platforms.create(750, 220, 'ground');
 
-    // The player and its settings
-    for (let i = 0; i < 2; i++) {
-        players[i] = this.physics.add.sprite(100 + i * 50, 450, 'dude');
-        //  Player physics properties. Give the little guy a slight bounce.
-        players[i].setBounce(0.2);
-        players[i].setCollideWorldBounds(true);
-        console.log(players[i])
-    };
+    players[uuid] = this.physics.add.sprite(100, 450, 'dude');
+    //  Player physics properties. Give the little guy a slight bounce.
+    players[uuid].setBounce(0.2);
+    players[uuid].setCollideWorldBounds(true);
 
     //  Our player animations, turning, walking left and walking right.
     this.anims.create({
@@ -141,9 +149,9 @@ function create() {
     scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
     //  Collide the player and the stars with the platforms
-    for (let i = 0; i < 2; i++) {
-        this.physics.add.collider(players[i], platforms);
-    }
+
+    this.physics.add.collider(players[uuid], platforms);
+
     this.physics.add.collider(stars, platforms);
     this.physics.add.collider(bombs, platforms);
 
@@ -157,24 +165,23 @@ function update() {
 
     if (cursors.left.isDown) {
         // Send a test message to the server
-        socket.emit('Move', { left: 'down' });
-        players[0].setVelocityX(-160);
+        players[uuid].setVelocityX(-160);
 
-        players[0].anims.play('left', true);
+        players[uuid].anims.play('left', true);
     }
     else if (cursors.right.isDown) {
-        players[0].setVelocityX(160);
+        players[uuid].setVelocityX(160);
 
-        players[0].anims.play('right', true);
+        players[uuid].anims.play('right', true);
     }
     else {
-        players[0].setVelocityX(0);
+        players[uuid].setVelocityX(0);
 
-        players[0].anims.play('turn');
+        players[uuid].anims.play('turn');
     }
 
-    if (cursors.up.isDown && players[0].body.touching.down) {
-        players[0].setVelocityY(-330);
+    if (cursors.up.isDown && players[uuid].body.touching.down) {
+        players[uuid].setVelocityY(-330);
     }
 }
 

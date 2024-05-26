@@ -7,6 +7,7 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+const players = {};
 
 app.use(express.static(path.join(__dirname, '../dist')));
 
@@ -27,7 +28,7 @@ io.on('connection', (socket) => {
 
     // Handle messages from the client
     socket.on('UserJoined', (data) => {
-        console.log('UserJoined:', data);
+        console.log('UserJoined:', data,);
         // Broadcast the message to all connected clients
         io.emit('UserJoined', data);
     });
