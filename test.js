@@ -2,7 +2,6 @@ const fs = require('fs');
 var PNGReader = require('png.js');
 
 fs.readFile('assets/fish.png', function (err, buffer) {
-
     var reader = new PNGReader(buffer);
     reader.parse(function (err, png) {
         if (err) throw err;
@@ -16,5 +15,4 @@ fs.readFile('assets/fish.png', function (err, buffer) {
         }
         console.log(map);
     });
-
 });
