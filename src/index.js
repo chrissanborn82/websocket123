@@ -27,8 +27,12 @@ const sceneConfig = {
 };
 
 
+const uuid = v4();
+
 const CANVAS_WIDTH = 720;
 const CANVAS_HEIGHT = 528;
+const players = { [uuid]: undefined }
+const allGridPhysics = { [uuid]: undefined };
 
 export class GameScene extends Phaser.Scene {
     constructor() {
@@ -58,10 +62,12 @@ export class GameScene extends Phaser.Scene {
             console.log(data)
             if (data.uuid !== uuid) {
                 console.log('new user joined!', data);
-                players[data.uuid] = this.physics.add.sprite(data.x, data.y, 'dude');
-                players[data.uuid].setBounce(0.2);
-                players[data.uuid].setCollideWorldBounds(true);
-                this.physics.add.collider(players[data.uuid], platforms);
+                players[data.uuid] = this.add.sprite(50, 50, 'player');
+                players[data.uuid].scale = 2;
+                const newPlayer = new Player(players[data.uuid], new Phaser.Math.Vector2(6, 6))
+                allGridPhysics[data.uuid] = new GridPhysics(newPlayer);
+
+
             }
         });
 
@@ -93,6 +99,7 @@ export class GameScene extends Phaser.Scene {
         this.createPlayerAnimation(Direction.RIGHT, 1, 6);
         this.createPlayerAnimation(Direction.DOWN, 19, 24);
         this.createPlayerAnimation(Direction.LEFT, 13, 18);
+        socket.emit('UserJoined', { uuid, x: 100, y: 450 });
         //end movement tutorial
         // console.log(uuid);
         // players[uuid] = this.physics.add.sprite(15, 15, 'adam');
@@ -159,8 +166,7 @@ const gameConfig = {
 };
 
 
-const uuid = v4();
-const players = { [uuid]: undefined }
+
 var stars;
 var bombs;
 var platforms;
@@ -172,17 +178,6 @@ var scoreText;
 
 var game = new Phaser.Game(gameConfig);
 let socket;
-function create() {
-
-
-}
-
-function update() {
-    if (gameOver) {
-        return;
-    }
-}
-
 function collectStar(player, star) {
     star.disableBody(true, true);
 
