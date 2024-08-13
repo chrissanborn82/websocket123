@@ -24,7 +24,7 @@ export class GridPhysics {
     this.tileSizePixelsWalked = 0;
   }
 
-  speedPixelsPerSecond = GameScene.TILE_SIZE * 4;
+  speedPixelsPerSecond = GameScene.TILE_SIZE * 2;
 
   getMovementVector() {
     return this.movementDirectionVectors[this.movementDirection].clone();
